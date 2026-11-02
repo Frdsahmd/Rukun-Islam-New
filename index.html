@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Rukun Islam - Game Edukasi PAI Kelas 1</title>
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Poppins (Sangat ramah anak) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Celebration Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, sans-serif;
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+            touch-action: manipulation;
+        }
+
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Custom Card Bounce Effect */
+        .bounce-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(180deg, #FF9900 0%, #FF5500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        /* Pulsing Glow */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+        }
+
+        .glow-active {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Drag and Drop Custom Styles */
+        .drop-zone.hovered {
+            background-color: #FEF08A;
+            border-color: #EAB308;
+            transform: scale(1.05);
+        }
+
+        /* Hide Scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden select-none">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full max-w-4xl flex justify-between items-center bg-white/90 backdrop-blur-md px-4 py-3 rounded-3xl shadow-lg border-4 border-emerald-400 mb-4 z-20">
+        <div class="flex items-center gap-3">
+            <button onclick="showScreen('start-screen')" class="bg-amber-400 hover:bg-amber-500 text-amber-900 w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold shadow-md transform active:scale-95 transition" title="Ganti Profil / Beranda Utama">
+                <i class="fa-solid fa-house"></i>
+            </button>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-emerald-800 leading-tight">Petualangan Rukun Islam</h1>
+                <p id="student-badge-header" class="text-xs text-emerald-600 font-poppins font-semibold">PAI Kelas 1 SD</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-4">
+            <!-- Audio Toggle -->
+            <button id="btn-sound" onclick="toggleSound()" class="bg-sky-400 hover:bg-sky-500 text-white w-11 h-11 rounded-2xl flex items-center justify-center text-lg shadow-md transform active:scale-95 transition">
+                <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+            </button>
+
+            <!-- Bintang Score Badge -->
+            <div class="bg-yellow-100 border-2 border-yellow-400 px-3 py-1.5 rounded-2xl flex items-center gap-2 shadow-inner">
+                <i class="fa-solid fa-star text-yellow-500 text-xl animate-bounce"></i>
+                <span id="star-count" class="text-xl font-black text-yellow-700">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="w-full max-w-4xl flex-grow flex items-center justify-center relative z-10">
+
+        <!-- ================= SCREEN 0: INPUT NAMA & KELAS (BARU) ================= -->
+        <section id="start-screen" class="w-full flex flex-col items-center text-center py-4">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-emerald-400 w-full max-w-md flex flex-col items-center">
+                <div class="w-28 h-28 bg-emerald-100 rounded-full flex items-center justify-center border-4 border-emerald-300 shadow-lg mb-4 animate-float">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=KikiDara&backgroundColor=b6e3f4" alt="Maskot Kiki" class="w-24 h-24 object-contain" />
+                </div>
+
+                <h2 class="text-2xl sm:text-3xl font-black text-emerald-800 mb-1">Selamat Datang!</h2>
+                <p class="text-xs sm:text-sm text-slate-600 font-poppins mb-6">Tulis nama dan kelasmu dulu ya sebelum bermain!</p>
+
+                <form onsubmit="saveProfile(event)" class="w-full flex flex-col gap-4">
+                    <div class="text-left">
+                        <label class="block text-xs font-bold text-emerald-800 mb-1 font-poppins uppercase tracking-wider">Nama Lengkap / Panggilan:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-emerald-500">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text" id="input-name" required placeholder="Contoh: Ahmad" 
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-emerald-200 rounded-2xl focus:outline-none focus:border-emerald-500 text-slate-800 font-bold text-base transition font-poppins">
+                        </div>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="block text-xs font-bold text-emerald-800 mb-1 font-poppins uppercase tracking-wider">Kelas:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-emerald-500">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </span>
+                            <input type="text" id="input-class" required placeholder="Contoh: 1-A" 
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-emerald-200 rounded-2xl focus:outline-none focus:border-emerald-500 text-slate-800 font-bold text-base transition font-poppins">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="mt-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-amber-950 font-black text-xl py-3.5 px-6 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Mulai Main!
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 1: MENU UTAMA ================= -->
+        <section id="menu-screen" class="hidden w-full flex-col items-center text-center py-4">
+            <!-- Maskot Lucu -->
+            <div class="relative mb-4 animate-float">
+                <div class="w-36 h-36 sm:w-44 sm:h-44 bg-emerald-100 rounded-full flex items-center justify-center border-8 border-white shadow-2xl overflow-hidden">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=KikiDara&backgroundColor=b6e3f4" alt="Maskot Kiki" class="w-28 h-28 sm:w-36 sm:h-36 object-contain" />
+                </div>
+                <div id="greeting-badge" class="absolute -bottom-2 bg-yellow-400 text-yellow-950 px-4 py-1 rounded-full font-bold text-xs sm:text-sm shadow-md border-2 border-white max-w-[220px] truncate">
+                    Halo, Teman! 👋
+                </div>
+            </div>
+
+            <!-- Title Banner -->
+            <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-sm mb-6 border border-emerald-200">
+                <p class="text-lg sm:text-xl text-emerald-900 font-medium">Ayo belajar 5 Rukun Islam sambil bermain!</p>
+            </div>
+
+            <!-- Menu Buttons Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl px-2">
+                <!-- Belajar Button -->
+                <button onclick="showScreen('learn-screen')" class="bounce-hover bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white p-5 rounded-3xl shadow-xl border-b-8 border-emerald-800 flex sm:flex-col items-center justify-center gap-4 group">
+                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div class="text-left sm:text-center">
+                        <span class="block text-2xl font-bold">1. Belajar</span>
+                        <span class="text-xs text-emerald-100 font-poppins">Mengenal 5 Rukun Islam</span>
+                    </div>
+                </button>
+
+                <!-- Game Susun Button -->
+                <button onclick="startDragGame()" class="bounce-hover bg-gradient-to-b from-sky-400 to-sky-600 hover:from-sky-500 hover:to-sky-700 text-white p-5 rounded-3xl shadow-xl border-b-8 border-sky-800 flex sm:flex-col items-center justify-center gap-4 group">
+                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                    </div>
+                    <div class="text-left sm:text-center">
+                        <span class="block text-2xl font-bold">2. Susun</span>
+                        <span class="text-xs text-sky-100 font-poppins">Urutkan Rukun Islam</span>
+                    </div>
+                </button>
+
+                <!-- Quiz Button -->
+                <button onclick="startQuiz()" class="bounce-hover bg-gradient-to-b from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-white p-5 rounded-3xl shadow-xl border-b-8 border-amber-800 flex sm:flex-col items-center justify-center gap-4 group">
+                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="text-left sm:text-center">
+                        <span class="block text-2xl font-bold">3. Kuis</span>
+                        <span class="text-xs text-amber-100 font-poppins">Tebak Jawaban Benar</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 2: MODUL BELAJAR ================= -->
+        <section id="learn-screen" class="hidden w-full flex-col items-center">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-emerald-300 w-full max-w-2xl">
+                <!-- Header Belajar -->
+                <div class="flex justify-between items-center mb-4">
+                    <span id="learn-badge" class="bg-emerald-100 text-emerald-800 text-sm font-bold px-4 py-1.5 rounded-full border border-emerald-300">
+                        Rukun Islam Ke-1
+                    </span>
+                    <div class="flex gap-1 text-emerald-500 font-bold text-sm">
+                        <span id="learn-step">1</span> / 5
+                    </div>
+                </div>
+
+                <!-- Content Card -->
+                <div id="learn-content" class="flex flex-col items-center text-center py-4 min-h-[300px] justify-center">
+                    <!-- Dynamic Content Inserted via JS -->
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t-2 border-slate-100">
+                    <button id="btn-prev-learn" onclick="changeLearnStep(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-3 rounded-2xl font-bold flex items-center gap-2 transition disabled:opacity-40">
+                        <i class="fa-solid fa-arrow-left"></i> Mundur
+                    </button>
+
+                    <button onclick="playCurrentAudio()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-2xl font-bold shadow-md flex items-center gap-2 transition active:scale-95">
+                        <i class="fa-solid fa-volume-high text-xl"></i> <span class="hidden sm:inline">Dengar Suara</span>
+                    </button>
+
+                    <button id="btn-next-learn" onclick="changeLearnStep(1)" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-md transition">
+                        Lanjut <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 3: GAME SUSUN URUTAN ================= -->
+        <section id="drag-screen" class="hidden w-full flex-col items-center">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-sky-300 w-full max-w-3xl">
+                <div class="text-center mb-4">
+                    <h2 class="text-2xl font-bold text-sky-800">Tarik & Letakkan Rukun Islam!</h2>
+                    <p class="text-sm text-slate-600 font-poppins">Urutkan dari angka 1 sampai 5 dengan benar ya!</p>
+                </div>
+
+                <!-- Target Drop Boxes -->
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-3 mb-6" id="drop-container">
+                    <!-- Dynamic Slots 1 to 5 -->
+                </div>
+
+                <div class="bg-sky-50 p-4 rounded-2xl border-2 border-dashed border-sky-200 mb-4">
+                    <p class="text-xs text-sky-700 font-bold mb-3 text-center uppercase tracking-wider">Pilihan Rukun Islam (Klik / Tarik Pilihan):</p>
+                    <!-- Draggable Options -->
+                    <div class="flex flex-wrap justify-center gap-2 sm:gap-3" id="drag-options">
+                        <!-- Dynamic Draggable Items -->
+                    </div>
+                </div>
+
+                <!-- Check Button -->
+                <div class="flex justify-center mt-4">
+                    <button onclick="checkDragAnswer()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-950 font-black text-xl px-8 py-3 rounded-2xl shadow-lg border-b-4 border-yellow-600 active:scale-95 transition">
+                        <i class="fa-solid fa-circle-check"></i> Periksa Jawaban
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 4: KUIS INTERAKTIF ================= -->
+        <section id="quiz-screen" class="hidden w-full flex-col items-center">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-amber-300 w-full max-w-2xl relative overflow-hidden">
+                <!-- Progress Line -->
+                <div class="w-full bg-slate-100 h-3 rounded-full mb-6 overflow-hidden">
+                    <div id="quiz-progress" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+
+                <!-- Quiz Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <span id="quiz-number" class="text-amber-700 font-bold bg-amber-100 px-3 py-1 rounded-xl text-sm">
+                        Soal 1 dari 5
+                    </span>
+                    <span class="text-xs text-slate-500 font-poppins">Pilih 1 Jawaban Benar</span>
+                </div>
+
+                <!-- Question Text -->
+                <div class="text-center my-4">
+                    <h3 id="quiz-question" class="text-2xl sm:text-3xl font-bold text-slate-800 leading-snug">
+                        ...
+                    </h3>
+                </div>
+
+                <!-- Image / Icon Illustration -->
+                <div id="quiz-icon-container" class="my-4 flex justify-center">
+                    <div class="w-24 h-24 bg-amber-50 rounded-2xl flex items-center justify-center text-5xl text-amber-500 border border-amber-200">
+                        <i id="quiz-icon" class="fa-solid fa-question"></i>
+                    </div>
+                </div>
+
+                <!-- Answer Choices -->
+                <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                    <!-- Dynamic Option Buttons -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 5: HASIL & SELESAI ================= -->
+        <section id="result-screen" class="hidden w-full flex-col items-center text-center">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-yellow-400 w-full max-w-md flex flex-col items-center relative overflow-hidden">
+                <div class="w-28 h-28 bg-yellow-100 rounded-full flex items-center justify-center text-6xl text-yellow-500 border-4 border-yellow-300 mb-3 animate-bounce">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+
+                <h2 class="text-3xl font-black text-slate-800 mb-1">HEBAT SEKALI!</h2>
+                
+                <!-- Display Student Identity on Certificate Badge -->
+                <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl px-4 py-2 my-2 w-full">
+                    <p id="result-student-name" class="text-xl font-bold text-emerald-900 leading-snug">Nama Siswa</p>
+                    <p id="result-student-class" class="text-xs text-emerald-700 font-poppins font-medium">Kelas: 1-A</p>
+                </div>
+
+                <p class="text-xs text-slate-500 font-poppins mb-4">Kamu telah menyelesaikan permainan ini dengan sangat baik!</p>
+
+                <div class="bg-amber-50 rounded-2xl p-4 w-full border-2 border-amber-200 mb-6">
+                    <span class="block text-xs text-amber-800 font-bold uppercase tracking-wider mb-1">Total Bintang Dipetik</span>
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-star text-yellow-400 text-3xl"></i>
+                        <span id="final-score" class="text-4xl font-black text-amber-900">0</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 w-full">
+                    <button onclick="showScreen('menu-screen')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-2xl shadow-md border-b-4 border-emerald-700 active:scale-95 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Main Lagi
+                    </button>
+                    <button onclick="showScreen('start-screen')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition text-xs font-poppins">
+                        <i class="fa-solid fa-user-pen"></i> Ganti Nama / Kelas
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-2 text-xs text-emerald-900 font-poppins font-medium opacity-80 z-10">
+        Game Edukasi PAI Kelas 1 SD &copy; Materi Rukun Islam
+    </footer>
+
+    <!-- Audio Effects using Web Audio API Synthesizer (No External Files Required!) -->
+    <script>
+        // --- AUDIO SYNTHESIZER FOR SOUND EFFECTS ---
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playClick() {
+                if (!soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            },
+            playCorrect() {
+                if (!soundEnabled) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.08);
+                    osc.stop(this.ctx.currentTime + idx * 0.08 + 0.2);
+                });
+            },
+            playWrong() {
+                if (!soundEnabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            },
+            playVictory() {
+                if (!soundEnabled) return;
+                this.init();
+                const tune = [400, 500, 600, 800, 1000];
+                tune.forEach((freq, idx) => {
+                    setTimeout(() => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + 0.3);
+                    }, idx * 120);
+                });
+            }
+        };
+
+        // --- DATA RUKUN ISLAM ---
+        const rukunData = [
+            {
+                no: 1,
+                title: "Mengucapkan Syahadat",
+                desc: "Syahadat adalah bukti kita percaya kepada Allah SWT dan Nabi Muhammad SAW sebagai utusan Allah.",
+                arabic: "أَشْهَدُ أَنْ لَا إِلٰهَ إِلَّا اللهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُوْلُ اللهِ",
+                latin: "Asyhadu alla ilaha illallah, wa asyhadu anna Muhammadar Rasulullah",
+                icon: "fa-certificate",
+                color: "bg-emerald-500",
+                lightColor: "bg-emerald-50 text-emerald-800 border-emerald-300"
+            },
+            {
+                no: 2,
+                title: "Mendirikan Shalat",
+                desc: "Umat Islam wajib beribadah Shalat 5 waktu dalam sehari semalam agar dicintai Allah.",
+                arabic: "الصَّلَاةُ عِمَادُ الدِّينِ",
+                latin: "Shalat adalah tiang agama",
+                icon: "fa-person-praying",
+                color: "bg-sky-500",
+                lightColor: "bg-sky-50 text-sky-800 border-sky-300"
+            },
+            {
+                no: 3,
+                title: "Membayar Zakat",
+                desc: "Memberikan sebagian rezeki/harta kepada orang yang membutuhkan agar hidup berkah.",
+                arabic: "وَآتُوا الزَّكَاةَ",
+                latin: "Dan tunaikanlah zakat",
+                icon: "fa-hand-holding-heart",
+                color: "bg-amber-500",
+                lightColor: "bg-amber-50 text-amber-800 border-amber-300"
+            },
+            {
+                no: 4,
+                title: "Puasa Bulan Ramadhan",
+                desc: "Menahan lapar, dahaga, dan emosi dari terbit fajar hingga terbenam matahari.",
+                arabic: "كُتِبَ عَلَيْكُمُ الصِّيَامُ",
+                latin: "Diwajibkan atas kamu berpuasa",
+                icon: "fa-moon",
+                color: "bg-purple-500",
+                lightColor: "bg-purple-50 text-purple-800 border-purple-300"
+            },
+            {
+                no: 5,
+                title: "Menunaikan Ibadah Haji",
+                desc: "Pergi beribadah ke Kota Mekkah (Ka'bah) bagi umat Islam yang mampu.",
+                arabic: "حِجُّ الْبَيْتِ مَنِ اسْتَطَاعَ",
+                latin: "Mengerjakan haji bagi yang mampu",
+                icon: "fa-kaaba",
+                color: "bg-rose-500",
+                lightColor: "bg-rose-50 text-rose-800 border-rose-300"
+            }
+        ];
+
+        // --- KUIS DATA ---
+        const quizQuestions = [
+            {
+                question: "Ada berapa jumlah Rukun Islam?",
+                icon: "fa-list-ol",
+                options: ["3 (Tiga)", "5 (Lima)", "7 (Tujuh)"],
+                answer: 1
+            },
+            {
+                question: "Rukun Islam yang Pertama adalah...",
+                icon: "fa-certificate",
+                options: ["Shalat", "Syahadat", "Puasa"],
+                answer: 1
+            },
+            {
+                question: "Shalat wajib dilakukan sehari semalam sebanyak...",
+                icon: "fa-clock",
+                options: ["5 Waktu", "2 Waktu", "10 Waktu"],
+                answer: 0
+            },
+            {
+                question: "Pada bulan apakah umat Islam diwajibkan Berpuasa?",
+                icon: "fa-moon",
+                options: ["Syawal", "Muharram", "Ramadhan"],
+                answer: 2
+            },
+            {
+                question: "Rukun Islam yang Kelima adalah...",
+                icon: "fa-kaaba",
+                options: ["Membayar Zakat", "Naik Haji bagi yang mampu", "Mendirikan Shalat"],
+                answer: 1
+            }
+        ];
+
+        // --- GLOBAL STATE ---
+        let currentStars = 0;
+        let soundEnabled = true;
+        let currentLearnIndex = 0;
+        let quizIndex = 0;
+        let quizScore = 0;
+        let dragSelections = {}; // Stores slotIndex: rukunObject
+
+        // Student Profile Data
+        let studentProfile = {
+            name: "Siswa",
+            className: "Kelas 1"
+        };
+
+        // Speech Synthesis for Text-to-Speech (Voice Assistant)
+        const synth = window.speechSynthesis;
+
+        function speakText(text) {
+            if (!soundEnabled || !synth) return;
+            synth.cancel(); // Stop current speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.9; // Slight slower speed for children
+            utterance.pitch = 1.1; // Friendly tone
+            synth.speak(utterance);
+        }
+
+        // Initialize App
+        window.onload = () => {
+            showScreen('start-screen');
+        };
+
+        // --- SAVE STUDENT PROFILE ---
+        function saveProfile(event) {
+            event.preventDefault();
+            AudioFX.playClick();
+
+            const nameInput = document.getElementById('input-name').value.trim();
+            const classInput = document.getElementById('input-class').value.trim();
+
+            if (nameInput && classInput) {
+                studentProfile.name = nameInput;
+                studentProfile.className = classInput;
+
+                // Update UI Header & Menu Badges
+                document.getElementById('student-badge-header').innerText = `${studentProfile.name} • ${studentProfile.className}`;
+                document.getElementById('greeting-badge').innerText = `Halo, ${studentProfile.name}! 👋`;
+
+                // Voice Greeting
+                speakText(`Halo ${studentProfile.name} dari kelas ${studentProfile.className}! Selamat datang di game Petualangan Rukun Islam!`);
+
+                showScreen('menu-screen');
+            }
+        }
+
+        // --- NAVIGATION CONTROLLER ---
+        function showScreen(screenId) {
+            AudioFX.playClick();
+            synth.cancel();
+
+            // Hide all screens
+            ['start-screen', 'menu-screen', 'learn-screen', 'drag-screen', 'quiz-screen', 'result-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('flex');
+            });
+
+            // Show selected screen
+            const target = document.getElementById(screenId);
+            target.classList.remove('hidden');
+            target.classList.add('flex');
+
+            if (screenId === 'learn-screen') {
+                renderLearnStep();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                AudioFX.playClick();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+                synth.cancel();
+            }
+        }
+
+        function addStars(amount) {
+            currentStars += amount;
+            document.getElementById('star-count').innerText = currentStars;
+        }
+
+        // ================= 1. MODUL BELAJAR =================
+        function renderLearnStep() {
+            const data = rukunData[currentLearnIndex];
+            document.getElementById('learn-badge').innerText = `Rukun Islam Ke-${data.no}`;
+            document.getElementById('learn-step').innerText = data.no;
+
+            const container = document.getElementById('learn-content');
+            container.innerHTML = `
+                <div class="w-20 h-20 sm:w-24 sm:h-24 ${data.color} text-white rounded-3xl flex items-center justify-center text-4xl shadow-lg mb-4 animate-bounce">
+                    <i class="fa-solid ${data.icon}"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mb-2">${data.title}</h2>
+                <div class="bg-amber-50 border-2 border-amber-200 p-3 rounded-2xl my-2 w-full max-w-md">
+                    <p class="text-xl sm:text-2xl font-bold text-amber-900 font-serif leading-relaxed">${data.arabic}</p>
+                    <p class="text-xs text-amber-700 italic mt-1 font-poppins">${data.latin}</p>
+                </div>
+                <p class="text-sm sm:text-base text-slate-600 font-poppins mt-2 px-4 max-w-lg leading-relaxed">${data.desc}</p>
+            `;
+
+            // Button Disabling logic
+            document.getElementById('btn-prev-learn').disabled = (currentLearnIndex === 0);
+            
+            const nextBtn = document.getElementById('btn-next-learn');
+            if (currentLearnIndex === rukunData.length - 1) {
+                nextBtn.innerHTML = `Selesai <i class="fa-solid fa-check-double"></i>`;
+                nextBtn.className = "bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-md transition";
+            } else {
+                nextBtn.innerHTML = `Lanjut <i class="fa-solid fa-arrow-right"></i>`;
+                nextBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-md transition";
+            }
+
+            // Automatic Voice Assistant Readout
+            playCurrentAudio();
+        }
+
+        function playCurrentAudio() {
+            const data = rukunData[currentLearnIndex];
+            speakText(`Rukun Islam ke ${data.no}. ${data.title}. ${data.desc}`);
+        }
+
+        function changeLearnStep(direction) {
+            AudioFX.playClick();
+            currentLearnIndex += direction;
+
+            if (currentLearnIndex >= rukunData.length) {
+                addStars(5);
+                confetti({ particleCount: 50, spread: 60 });
+                showScreen('menu-screen');
+                currentLearnIndex = 0;
+            } else {
+                renderLearnStep();
+            }
+        }
+
+        // ================= 2. GAME SUSUN (DRAG & DROP / CLICK) =================
+        let selectedOption = null;
+
+        function startDragGame() {
+            showScreen('drag-screen');
+            dragSelections = {};
+            selectedOption = null;
+
+            const dropContainer = document.getElementById('drop-container');
+            const optionsContainer = document.getElementById('drag-options');
+
+            dropContainer.innerHTML = '';
+            optionsContainer.innerHTML = '';
+
+            // Create 5 Drop Slots
+            for (let i = 1; i <= 5; i++) {
+                dropContainer.innerHTML += `
+                    <div class="drop-zone border-4 border-dashed border-sky-300 bg-sky-50 rounded-2xl p-2 min-h-[100px] flex flex-col items-center justify-center transition"
+                         ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, ${i})" onclick="clickSlot(${i})">
+                        <span class="text-xs font-bold text-sky-400 mb-1">Ke-${i}</span>
+                        <div id="slot-content-${i}" class="w-full text-center">
+                            <span class="text-xs text-slate-400 font-poppins">Kosong</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Shuffle Rukun Items for Drag Options
+            const shuffled = [...rukunData].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(item => {
+                const optBtn = document.createElement('div');
+                optBtn.id = `drag-item-${item.no}`;
+                optBtn.draggable = true;
+                optBtn.ondragstart = (e) => handleDragStart(e, item.no);
+                optBtn.onclick = () => selectOptionClick(item.no);
+                optBtn.className = "cursor-pointer bg-white border-2 border-sky-400 hover:bg-sky-100 text-sky-900 px-3 py-2 rounded-xl shadow-md text-xs sm:text-sm font-bold flex items-center gap-2 transform active:scale-95 transition";
+                optBtn.innerHTML = `<i class="fa-solid ${item.icon} text-sky-500"></i> ${item.title}`;
+                optionsContainer.appendChild(optBtn);
+            });
+
+            speakText("Urutkan Rukun Islam dari nomor 1 sampai 5 dengan benar!");
+        }
+
+        function handleDragStart(e, id) {
+            e.dataTransfer.setData("text/plain", id);
+            AudioFX.playClick();
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('hovered');
+        }
+
+        function leaveDrop(e) {
+            e.currentTarget.classList.remove('hovered');
+        }
+
+        function handleDrop(e, slotNum) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('hovered');
+            const rukunId = parseInt(e.dataTransfer.getData("text/plain"));
+            assignToSlot(slotNum, rukunId);
+        }
+
+        // Tap/Click Alternative for Drag and Drop (Very child-friendly)
+        function selectOptionClick(rukunId) {
+            AudioFX.playClick();
+            selectedOption = rukunId;
+
+            // Highlight Option
+            rukunData.forEach(r => {
+                const el = document.getElementById(`drag-item-${r.no}`);
+                if (el) el.classList.remove('ring-4', 'ring-yellow-400');
+            });
+            const selEl = document.getElementById(`drag-item-${rukunId}`);
+            if (selEl) selEl.classList.add('ring-4', 'ring-yellow-400');
+        }
+
+        function clickSlot(slotNum) {
+            if (selectedOption !== null) {
+                assignToSlot(slotNum, selectedOption);
+                selectedOption = null;
+            } else if (dragSelections[slotNum]) {
+                // Clear slot if clicked without selecting
+                delete dragSelections[slotNum];
+                renderSlots();
+                renderOptionPool();
+            }
+        }
+
+        function assignToSlot(slotNum, rukunId) {
+            AudioFX.playClick();
+            // Remove previous occurrence of this item if assigned elsewhere
+            Object.keys(dragSelections).forEach(k => {
+                if (dragSelections[k] === rukunId) delete dragSelections[k];
+            });
+
+            dragSelections[slotNum] = rukunId;
+            renderSlots();
+            renderOptionPool();
+        }
+
+        function renderSlots() {
+            for (let i = 1; i <= 5; i++) {
+                const contentDiv = document.getElementById(`slot-content-${i}`);
+                const rukunId = dragSelections[i];
+
+                if (rukunId) {
+                    const item = rukunData.find(r => r.no === rukunId);
+                    contentDiv.innerHTML = `
+                        <div class="bg-sky-500 text-white p-2 rounded-xl text-xs font-bold shadow animate-pop flex flex-col items-center gap-1">
+                            <i class="fa-solid ${item.icon} text-base"></i>
+                            <span class="leading-tight">${item.title}</span>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `<span class="text-xs text-slate-400 font-poppins">Kosong</span>`;
+                }
+            }
+        }
+
+        function renderOptionPool() {
+            const assignedIds = Object.values(dragSelections);
+            rukunData.forEach(item => {
+                const el = document.getElementById(`drag-item-${item.no}`);
+                if (el) {
+                    if (assignedIds.includes(item.no)) {
+                        el.classList.add('opacity-30', 'pointer-events-none');
+                        el.classList.remove('ring-4', 'ring-yellow-400');
+                    } else {
+                        el.classList.remove('opacity-30', 'pointer-events-none');
+                    }
+                }
+            });
+        }
+
+        function checkDragAnswer() {
+            let correctCount = 0;
+            for (let i = 1; i <= 5; i++) {
+                if (dragSelections[i] === i) {
+                    correctCount++;
+                }
+            }
+
+            if (correctCount === 5) {
+                AudioFX.playVictory();
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                addStars(10);
+                speakText("Luar biasa! Urutan Rukun Islam kamu benar semua!");
+                setTimeout(() => {
+                    showScreen('menu-screen');
+                }, 2000);
+            } else {
+                AudioFX.playWrong();
+                speakText("Masih ada yang keliru. Coba periksa lagi ya!");
+            }
+        }
+
+        // ================= 3. KUIS INTERAKTIF =================
+        function startQuiz() {
+            showScreen('quiz-screen');
+            quizIndex = 0;
+            quizScore = 0;
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const q = quizQuestions[quizIndex];
+            
+            // Update Progress
+            const progressPct = ((quizIndex) / quizQuestions.length) * 100;
+            document.getElementById('quiz-progress').style.width = `${progressPct}%`;
+            document.getElementById('quiz-number').innerText = `Soal ${quizIndex + 1} dari ${quizQuestions.length}`;
+
+            // Set Content
+            document.getElementById('quiz-question').innerText = q.question;
+            document.getElementById('quiz-icon').className = `fa-solid ${q.icon}`;
+
+            // Render Options
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bounce-hover bg-slate-50 hover:bg-amber-100 border-2 border-slate-200 hover:border-amber-400 text-slate-800 font-bold p-4 rounded-2xl text-left text-base sm:text-lg flex items-center justify-between transition shadow-sm active:scale-95";
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <i class="fa-regular fa-circle text-slate-300"></i>
+                `;
+                btn.onclick = () => answerQuiz(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            speakText(q.question);
+        }
+
+        function answerQuiz(selectedIndex, btnElement) {
+            const q = quizQuestions[quizIndex];
+            const allButtons = document.getElementById('quiz-options').children;
+
+            // Disable all buttons immediately
+            for (let btn of allButtons) {
+                btn.disabled = true;
+            }
+
+            if (selectedIndex === q.answer) {
+                // Correct
+                AudioFX.playCorrect();
+                btnElement.className = "bg-emerald-500 text-white font-bold p-4 rounded-2xl text-left text-base sm:text-lg flex items-center justify-between shadow-lg border-2 border-emerald-600 animate-bounce";
+                btnElement.querySelector('i').className = "fa-solid fa-circle-check text-white text-xl";
+                quizScore += 10;
+                addStars(2);
+                confetti({ particleCount: 30, spread: 50 });
+            } else {
+                // Incorrect
+                AudioFX.playWrong();
+                btnElement.className = "bg-rose-500 text-white font-bold p-4 rounded-2xl text-left text-base sm:text-lg flex items-center justify-between shadow-lg border-2 border-rose-600";
+                btnElement.querySelector('i').className = "fa-solid fa-circle-xmark text-white text-xl";
+
+                // Highlight correct one
+                const correctBtn = allButtons[q.answer];
+                correctBtn.className = "bg-emerald-100 border-2 border-emerald-500 text-emerald-900 font-bold p-4 rounded-2xl text-left text-base sm:text-lg flex items-center justify-between";
+            }
+
+            setTimeout(() => {
+                quizIndex++;
+                if (quizIndex < quizQuestions.length) {
+                    renderQuizQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1800);
+        }
+
+        function finishQuiz() {
+            showScreen('result-screen');
+            AudioFX.playVictory();
+            
+            // Set Result Student Info
+            document.getElementById('result-student-name').innerText = studentProfile.name;
+            document.getElementById('result-student-class').innerText = `Kelas: ${studentProfile.className}`;
+            document.getElementById('final-score').innerText = currentStars;
+            
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+            speakText(`Selamat ${studentProfile.name}! Kamu mendapatkan total ${currentStars} bintang! Kamu anak hebat!`);
+        }
+    </script>
+</body>
+</html>
